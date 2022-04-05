@@ -1,3 +1,3 @@
-double f(x,y,t);
-double g(x,y,t);
-double h(x,y,t);
+double f(double x,double y,double t);
+double g(double x,double y,double t);
+double h(double x,double y,double t);
