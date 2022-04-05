@@ -1,14 +1,14 @@
 
 
-double f(x,y,t){
+double f(double x,double y,double t){
     return 2*(y - y*y + x - x*x);
 }
 
-double g(x,y,t){
+double g(double x,double y,double t){
     return 0.0;
 }
 
-double h(x,y,t){
+double h(double x,double y,double t){
     return 0.0;
 }
 
