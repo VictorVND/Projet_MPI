@@ -16,16 +16,16 @@ double h(double x,double y,double t);
 int main(int argc, char* argv[])
 {
      //Lecture des paramètres [TODO] Faire une fonction qui lit les paramètres dans un fichier
-    int Nx,Ny,m,k, nbr_itr;
+    int Nx,Ny,m,n, nbr_itr;
     double Lx,Ly,D,dt,dx,dy,t, a,b,c;
     double *F, *U0, *P, *U, *U_exact,*D1;
     FILE *fichier;
     
-    k=0;
-    nbr_itr=10;
+    n=0;
+    nbr_itr=1;
 
-    Nx = 10;
-    Ny = 10;
+    Nx = 4;
+    Ny = 4;
     D = 1.0;
     
     m=Nx*Ny;
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     
      dx=1./(Nx+1);
      dy=1./(Ny+1);
-     dt=1.0;
+     dt=0.5;
 
     F=(double *)malloc(m*sizeof(double));
     D1=(double *)malloc(m*sizeof(double));
@@ -41,8 +41,8 @@ int main(int argc, char* argv[])
     U_exact=(double *)malloc(m*sizeof(double));
     U=(double *)malloc(m*sizeof(double));
     P=(double *)malloc(m*sizeof(double));
-      a=-D*dt/(dx*dx);
-      b=-D*dt/(dy*dy);
+      a=-dt/(dx*dx);
+      b=-dt/(dy*dy);
       c=1-2*(a+b);
 
 
@@ -52,42 +52,48 @@ int main(int argc, char* argv[])
          P[i]=0.0;
          F[i]=0.0;
          U[i]=1.0;
+        // printf("U[%d]=%f\n",i, U[i]);
+
      }
      t=1.0;
+     printf("a= %f et b=%f\n",a,b);
+
+     //remplissage_second_membre(F,U0, a, b, Nx, Ny,n*dt, dt);
 
     //Résolution
     //------------------------//
-     for (int i = 1; i < m+1; i++)
-     {
-         for (int j = 1; j < m+1; j++)
-         {
-             U_exact[(j-1)*Nx+(i-1)]=sol_exacte(dx*i,dy*j,t);
-         }
-         
-     }
-     
-  
-     while (k<nbr_itr)
-     {
-         double err=0;
-          for (int i = 0; i < m; i++)
-         {
-             D1[i]=0.0;
-             F[i]=0.0;
-             U[i]=0.0;
-         }
-         err=0;
-         remplissage_second_membre(F,U0, a, b, Nx, Ny,k*dt, dt);
-         grad_c(a,b, c,F,U,Nx,Ny);
          for (int i = 0; i < m; i++)
+       {
+         //printf("F[%d]=%f\n",i, F[i]);
+       }
+      // matvec(U,P,Nx,Ny,a,b,c);
+       for (int i = 0; i < m; i++)
+       {
+        // printf("P[%d]=%f\n",i, P[i]);
+       }
+       //printf("a+b+c=%f\n", a+b+c);
+      // printf("2a+b+c=%f\n", 2*a+b+c);
+       //printf("a+2b+c=%f\n", a+2*b+c);
+       
+  
+     while (n<nbr_itr)
+     {  
+
+         double err=0; 
+         remplissage_second_membre(F,U0, a, b, Nx, Ny,n*dt, dt);
+         grad_c(a,b, c,F,U,Nx,Ny);
+        for (int k = 0; k < m; k++)
          {
-             D1[i]=U[i]-U_exact[i];
+             int i = k%Nx + 1 ;
+             int j = k/Nx + 1;
+             U_exact[k]=sol_exacte(dx*i,dy*j,t);
+             D1[k]=U[k]-U_exact[k];
          }
          err=norm(D1, Nx,Ny);
-         printf("U au pas de temps %d est %f et %f et uexact est %f et %f \n", k, U[0], U[20], U_exact[0], U_exact[20]);
+         printf("U au pas de temps %d est %f et %f et uexact est %f et %f \n",n, U[0], U[11], U_exact[0], U_exact[11]);
          printf("l'erreur est de %f\n", err);
          U0=U;
-         k+=1;
+         n+=1;
      }
      fichier=fopen("results.txt", "w+");
 
@@ -118,25 +124,19 @@ int main(int argc, char* argv[])
 
                 if ((i==1 && j!=1) && (i==1 && j!=Ny))
               {
-                P[(j-1)*Nx+(i-1)]=c*(U[(j-1)*Nx+(i-1)])+a*(U[(j-1)*Nx+i])+b*(U[(j-2)*Nx+(i-1)]+U[(j)*Nx+(i-1)]);
-
-                    
+                P[(j-1)*Nx+(i-1)]=c*(U[(j-1)*Nx+(i-1)])+a*(U[(j-1)*Nx+i])+b*(U[(j-2)*Nx+(i-1)]+U[(j)*Nx+(i-1)]);      
               }
                 else if ((i==Nx && j!=1) && (i==Nx && j!=Ny))
               {
-    
               P[(j-1)*Nx+(i-1)]=c*(U[(j-1)*Nx+(i-1)])+a*(U[(j-1)*Nx+(i-2)])+b*(U[(j-2)*Nx+(i-1)]+U[(j)*Nx+(i-1)]);
               }
                 else if ((j==Ny && i!=1) && (j==Ny && i!=Nx))
               {
-                 
               P[(j-1)*Nx+(i-1)]=c*(U[(j-1)*Nx+(i-1)])+a*(U[(j-1)*Nx+(i-2)]+U[(j-1)*Nx+(i)])+b*(U[(j-2)*Nx+(i-1)]);
-              
               }
                 else if ((j==1 && i!=1) && (j==1 && i!=Nx))
               {
               P[(j-1)*Nx+(i-1)]=c*U[(j-1)*Nx+(i-1)]+a*(U[(j-1)*Nx+(i-2)]+U[(j-1)*Nx+(i)])+b*(U[(j)*Nx+(i-1)]);
-              
               }
                 else if (i==1 && j==1)
               {
@@ -206,13 +206,13 @@ int main(int argc, char* argv[])
 
 
 void grad_c(double a,double b,double c,double*F,double*x,int Nx,int Ny){
-    int kmax = 1000;
+    int kmax = 20000;
     int k=0;
     double *r_k,*r_kpun,*p,*Ax;
     double alpha,beta,denom,gamma;
     double norm_r,res_min;
 
-    res_min = 1e-8;
+    res_min = 1e-12;
 
     r_k = (double *)malloc((Nx*Ny)*sizeof(double));
     r_kpun = (double *)malloc((Nx*Ny)*sizeof(double));
@@ -298,20 +298,21 @@ double norm(double *r_k, int Nx, int Ny){
 }   
 
 double f(double x,double y,double t){
-    return 2*(y - y*y + x - x*x);
-    //return sin(x) + cos(y);
+   //return 2*(y - y*y + x - x*x);
+    return sin(x) + cos(y);
+    //return 10.0;
 }
 
 double g(double x,double y,double t){
-    return 0.0;
-    //return sin(x) + cos(y);
+    //return 1.0;
+    return sin(x) + cos(y);
 }
 
 double h(double x,double y,double t){
-    return 0.0;
-     //return sin(x) + cos(y);
+    //return 0.0;
+     return sin(x) + cos(y);
 }     
 double sol_exacte(double x,double y,double t){
-    return x*(1-x)*y*(1-y);
-   //return sin(x) + cos(y);
+    //return x*(1.-x)*y*(1.-y);
+   return sin(x) + cos(y);
 }  
